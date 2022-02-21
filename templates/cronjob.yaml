@@ -4,7 +4,7 @@
 
 {{- range $job := .Values.jobs }}
 ---
-apiVersion: batch/v1beta1
+apiVersion: batch/v1
 kind: CronJob
 metadata:
   name: "{{ $release_name }}-{{ $job.name }}"
@@ -52,12 +52,11 @@ spec:
             envFrom:
 {{ toYaml . | indent 12 }}
             {{- end }}
-            {{- if $job.command }}
-            command: {{ $job.command }}
-            {{- end }}
-            {{- with $job.args }}
+            command: ["/bin/sh"]
+            {{- with $job.commands }}
             args:
-{{ toYaml . | indent 12 }}
+              - -c
+{{ toYaml . | indent 14 }}
               {{- end }}
             {{- with $job.resources }}
             resources:
@@ -85,5 +84,6 @@ spec:
 {{ toYaml . | indent 12 }}
           {{- end }}
   schedule: {{ $job.schedule | quote }}
+  suspend: {{ $job.suspend | default false }}
   successfulJobsHistoryLimit: {{ $job.successfulJobsHistoryLimit }}
 {{- end }}
